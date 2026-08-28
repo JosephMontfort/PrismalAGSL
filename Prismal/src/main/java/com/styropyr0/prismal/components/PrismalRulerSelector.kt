@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -76,6 +77,9 @@ private val RulerSnapSpring = spring<Float>(
  *
  * The selected value is rendered inside the droplet. Ticks scroll through the glass
  * and leave a gap only under the label: `||||||| <value> |||||||`
+ *
+ * [onValueChange] is invoked continuously as the focused tick changes while scrolling,
+ * and again when the ruler snaps after release.
  */
 @Composable
 fun PrismalRulerSelector(
@@ -174,10 +178,7 @@ fun PrismalRulerSelector(
             }
             lockedIndex = index
             focusedIndex = index
-            val nextValue = valueAt(index)
-            if (nextValue != value) {
-                onValueChangeState.value(nextValue)
-            }
+            onValueChangeState.value(valueAt(index))
         }
 
         LaunchedEffect(value, valueCount, tickSpacingPx) {
@@ -202,10 +203,12 @@ fun PrismalRulerSelector(
                 }
         }
 
-        LaunchedEffect(scrollState) {
-            snapshotFlow { scrollState.value }
-                .collect { scrollPx ->
-                    focusedIndex = indexForScroll(scrollPx)
+        LaunchedEffect(scrollState, valueCount, tickSpacingPx) {
+            snapshotFlow { indexForScroll(scrollState.value) }
+                .distinctUntilChanged()
+                .collect { index ->
+                    focusedIndex = index
+                    onValueChangeState.value(valueAt(index))
                 }
         }
 
@@ -226,18 +229,46 @@ fun PrismalRulerSelector(
             }
             maxWidth
         }
-        val dropletHorizontalInsetPx =
-            with(density) { (dropletExtraWidth + dropletPadding * 2).toPx() }
+        val dropletHorizontalInsetPx = with(density) { (dropletExtraWidth + dropletPadding * 2).toPx() }
         val dropletWidthPx = maxLabelWidthPx + dropletHorizontalInsetPx
         val dropletWidth = with(density) { dropletWidthPx.toDp() }
+        val tickGapPx = with(density) { RulerValueTickGap.toPx() }
+        val sampleHiddenHalfWidth = maxLabelWidthPx / 2f + tickGapPx
+        val visibleHiddenHalfWidth = dropletWidthPx / 2f
 
-        Box(Modifier.matchParentSize()) {
+        fun DrawScope.drawTicks(hiddenHalfWidth: Float) {
+            val centerY = size.height / 2f
+            val fadeRadius = viewportWidthPx / 2f
+            val viewportCenterX = viewportWidthPx / 2f
+
+            for (index in 0 until valueCount) {
+                val x = index * tickSpacingPx
+                val screenX = sideSpacerPx + x - scrollState.value
+                if (abs(screenX - viewportCenterX) < hiddenHalfWidth) continue
+
+                val distanceFromCenter = abs(screenX - viewportCenterX) / fadeRadius
+                val focus = (1f - distanceFromCenter.coerceIn(0f, 1f))
+                val alpha = lerp(0.22f, 1f, focus)
+                val isMajor = index % majorTickEvery == 0
+                val tickHeight = if (isMajor) majorTickHeightPx else minorTickHeightPx
+
+                drawLine(
+                    color = tickColor.copy(alpha = tickColor.alpha * alpha),
+                    start = Offset(x, centerY - tickHeight / 2f),
+                    end = Offset(x, centerY + tickHeight / 2f),
+                    strokeWidth = tickStrokePx,
+                    cap = StrokeCap.Round,
+                )
+            }
+        }
+
+        @Composable
+        fun TicksRow(
+            hiddenHalfWidth: Float,
+            rowModifier: Modifier,
+        ) {
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .prismalGlassLayer(ticksBackdrop)
-                    .horizontalScroll(scrollState)
-                    .align(Alignment.Center),
+                rowModifier,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(Modifier.width(with(density) { sideSpacerPx.toDp() }))
@@ -245,38 +276,32 @@ fun PrismalRulerSelector(
                 Canvas(
                     Modifier
                         .width(with(density) { contentWidthPx.toDp().coerceAtLeast(0.dp) })
-                        .fillMaxHeight()
-                ) {
-                    val centerY = size.height / 2f
-                    val fadeRadius = viewportWidthPx / 2f
-                    val viewportCenterX = viewportWidthPx / 2f
-                    val tickGapPx = RulerValueTickGap.toPx()
-                    val hiddenHalfWidth = maxLabelWidthPx / 2f + tickGapPx
-
-                    for (index in 0 until valueCount) {
-                        val x = index * tickSpacingPx
-                        val screenX = sideSpacerPx + x - scrollState.value
-                        if (abs(screenX - viewportCenterX) < hiddenHalfWidth) continue
-
-                        val distanceFromCenter =
-                            abs(screenX - viewportCenterX) / fadeRadius
-                        val focus = (1f - distanceFromCenter.coerceIn(0f, 1f))
-                        val alpha = lerp(0.22f, 1f, focus)
-                        val isMajor = index % majorTickEvery == 0
-                        val tickHeight = if (isMajor) majorTickHeightPx else minorTickHeightPx
-
-                        drawLine(
-                            color = tickColor.copy(alpha = tickColor.alpha * alpha),
-                            start = Offset(x, centerY - tickHeight / 2f),
-                            end = Offset(x, centerY + tickHeight / 2f),
-                            strokeWidth = tickStrokePx,
-                            cap = StrokeCap.Round,
-                        )
-                    }
-                }
+                        .fillMaxHeight(),
+                    onDraw = { drawTicks(hiddenHalfWidth) },
+                )
 
                 Spacer(Modifier.width(with(density) { sideSpacerPx.toDp() }))
             }
+        }
+
+        Box(Modifier.matchParentSize()) {
+            TicksRow(
+                hiddenHalfWidth = sampleHiddenHalfWidth,
+                rowModifier = Modifier
+                    .alpha(0f)
+                    .fillMaxWidth()
+                    .prismalGlassLayer(ticksBackdrop)
+                    .horizontalScroll(scrollState, enabled = false)
+                    .align(Alignment.Center),
+            )
+
+            TicksRow(
+                hiddenHalfWidth = visibleHiddenHalfWidth,
+                rowModifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState)
+                    .align(Alignment.Center),
+            )
 
             Box(
                 Modifier
