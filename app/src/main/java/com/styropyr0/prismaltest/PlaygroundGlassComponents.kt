@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -42,6 +41,7 @@ import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.drawPlainPrismalGlass
 import com.styropyr0.prismal.drawPrismalGlass
+import com.styropyr0.prismal.drawPrismalGlassTint
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.interactive.PrismalPressRipple
 import com.styropyr0.prismal.shapes.PrismalCapsule
@@ -86,6 +86,7 @@ fun PlaygroundGlassButton(
     modifier: Modifier = Modifier,
     isInteractive: Boolean = true,
     tint: Color = Color.Unspecified,
+    tintAlpha: Float = params.tintAlpha,
     surfaceColor: Color = Color.Unspecified,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -106,6 +107,7 @@ fun PlaygroundGlassButton(
                 pressRipple = interactivePrismalSpecular,
                 pressLiftPx = pressLiftPx,
                 tint = tint,
+                tintAlpha = tintAlpha,
                 surfaceColor = surfaceColor
             )
             .clickable(
@@ -140,6 +142,7 @@ fun PlaygroundGlassSurface(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     tint: Color = Color.Unspecified,
+    tintAlpha: Float = params.tintAlpha,
     surfaceColor: Color = Color.Unspecified,
     useModalMaterial: Boolean = false,
     nestedGlassSource: PrismalGlassLayer? = null,
@@ -171,6 +174,7 @@ fun PlaygroundGlassSurface(
                 pressRipple = interactivePrismalSpecular,
                 pressLiftPx = pressLiftPx,
                 tint = tint,
+                tintAlpha = tintAlpha,
                 surfaceColor = resolvedSurfaceColor,
                 useModalMaterial = useModalMaterial,
                 nestedGlassSource = nestedGlassSource
@@ -248,6 +252,7 @@ fun PlaygroundGlassProgressBar(
                             refractionHeightPx = 0f,
                             refractionAmountPx = 0f,
                             useVibrancy = false,
+                            adaptiveTuning = params.adaptiveStyle.toTuning(),
                         )
                     },
                     onDrawSurface = {
@@ -290,6 +295,7 @@ private fun Modifier.playgroundGlassModifier(
     pressRipple: PrismalPressRipple?,
     pressLiftPx: Float,
     tint: Color,
+    tintAlpha: Float,
     surfaceColor: Color,
     useModalMaterial: Boolean = false,
     nestedGlassSource: PrismalGlassLayer? = null,
@@ -341,10 +347,7 @@ private fun Modifier.playgroundGlassModifier(
             if (!useModalMaterial && params.surfaceTintAlpha > 0f) {
                 drawPlaygroundSurfaceTint(params)
             }
-            if (tint.isSpecified) {
-                drawRect(tint, blendMode = BlendMode.Hue)
-                drawRect(tint.copy(alpha = 0.75f))
-            }
+            drawPrismalGlassTint(tint, tintAlpha)
             if (surfaceColor.isSpecified) {
                 drawRect(surfaceColor)
             }

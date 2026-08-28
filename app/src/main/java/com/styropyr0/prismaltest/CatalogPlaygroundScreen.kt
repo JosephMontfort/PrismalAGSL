@@ -398,7 +398,7 @@ private fun CatalogTabContent(
                         params = glassParams,
                         luminance = luminance,
                         modifier = Modifier.weight(1f),
-                        tint = Color(0x8FFFEF82)
+                        tint = Color(0xFFFEF082)
                     ) {
                         Text("Tinted", style = IosTheme.body, color = IosTheme.colors.label)
                     }

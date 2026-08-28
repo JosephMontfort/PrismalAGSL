@@ -18,6 +18,7 @@ object GlassPlaygroundStorage {
     private const val KEY_CORNER_RADIUS = "corner_radius"
     private const val KEY_DEPTH_EFFECT = "depth_effect"
     private const val KEY_ADAPTIVE_LUMINANCE = "adaptive_luminance"
+    private const val KEY_ADAPTIVE_STYLE = "adaptive_style"
     private const val KEY_USE_VIBRANCY = "use_vibrancy"
     private const val KEY_SPECULAR_ENABLED = "specular_enabled"
     private const val KEY_SPECULAR_ALPHA = "specular_alpha"
@@ -30,6 +31,7 @@ object GlassPlaygroundStorage {
     private const val KEY_DEPTH_INSET_RADIUS = "depth_inset_radius"
     private const val KEY_DEPTH_INSET_ALPHA = "depth_inset_alpha"
     private const val KEY_SURFACE_TINT_ALPHA = "surface_tint_alpha"
+    private const val KEY_TINT_ALPHA = "tint_alpha"
     private const val KEY_GRADIENT_BLUR_FADE_END = "gradient_blur_fade_end"
     private const val KEY_GRADIENT_BOTTOM_WEIGHT = "gradient_bottom_weight"
 
@@ -46,6 +48,9 @@ object GlassPlaygroundStorage {
         params.cornerRadiusDp = prefs.getFloat(KEY_CORNER_RADIUS, params.cornerRadiusDp)
         params.depthEffect = prefs.getBoolean(KEY_DEPTH_EFFECT, params.depthEffect)
         params.adaptiveLuminance = prefs.getBoolean(KEY_ADAPTIVE_LUMINANCE, params.adaptiveLuminance)
+        params.adaptiveStyle = AdaptiveStyleOption.entries.getOrElse(
+            prefs.getInt(KEY_ADAPTIVE_STYLE, AdaptiveStyleOption.Standard.ordinal)
+        ) { AdaptiveStyleOption.Standard }
         params.useVibrancy = prefs.getBoolean(KEY_USE_VIBRANCY, params.useVibrancy)
         params.specularEnabled = prefs.getBoolean(KEY_SPECULAR_ENABLED, params.specularEnabled)
         params.specularAlpha = prefs.getFloat(KEY_SPECULAR_ALPHA, params.specularAlpha)
@@ -60,6 +65,7 @@ object GlassPlaygroundStorage {
         params.depthInsetRadiusDp = prefs.getFloat(KEY_DEPTH_INSET_RADIUS, params.depthInsetRadiusDp)
         params.depthInsetAlpha = prefs.getFloat(KEY_DEPTH_INSET_ALPHA, params.depthInsetAlpha)
         params.surfaceTintAlpha = prefs.getFloat(KEY_SURFACE_TINT_ALPHA, params.surfaceTintAlpha)
+        params.tintAlpha = prefs.getFloat(KEY_TINT_ALPHA, params.tintAlpha)
         params.gradientBlurFadeEnd = prefs.getFloat(KEY_GRADIENT_BLUR_FADE_END, params.gradientBlurFadeEnd)
         params.gradientBottomWeight = prefs.getFloat(KEY_GRADIENT_BOTTOM_WEIGHT, params.gradientBottomWeight)
     }
@@ -76,6 +82,7 @@ object GlassPlaygroundStorage {
             .putFloat(KEY_CORNER_RADIUS, params.cornerRadiusDp)
             .putBoolean(KEY_DEPTH_EFFECT, params.depthEffect)
             .putBoolean(KEY_ADAPTIVE_LUMINANCE, params.adaptiveLuminance)
+            .putInt(KEY_ADAPTIVE_STYLE, params.adaptiveStyle.ordinal)
             .putBoolean(KEY_USE_VIBRANCY, params.useVibrancy)
             .putBoolean(KEY_SPECULAR_ENABLED, params.specularEnabled)
             .putFloat(KEY_SPECULAR_ALPHA, params.specularAlpha)
@@ -88,6 +95,7 @@ object GlassPlaygroundStorage {
             .putFloat(KEY_DEPTH_INSET_RADIUS, params.depthInsetRadiusDp)
             .putFloat(KEY_DEPTH_INSET_ALPHA, params.depthInsetAlpha)
             .putFloat(KEY_SURFACE_TINT_ALPHA, params.surfaceTintAlpha)
+            .putFloat(KEY_TINT_ALPHA, params.tintAlpha)
             .putFloat(KEY_GRADIENT_BLUR_FADE_END, params.gradientBlurFadeEnd)
             .putFloat(KEY_GRADIENT_BOTTOM_WEIGHT, params.gradientBottomWeight)
             .apply()

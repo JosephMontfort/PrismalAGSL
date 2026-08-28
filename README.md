@@ -301,7 +301,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | Component | Package | Description |
 |-----------|---------|-------------|
 | `PrismalGlassSurface` | `com.styropyr0.prismal` | General glass container; optional click + tint |
-| `PrismalGlassButton` | `…components` | Capsule button with press ripple |
+| `PrismalGlassButton` | `…components` | Capsule button; configurable `blurRadius`, `height`, `tintAlpha` |
 | `PrismalGlassToggle` | `…components` | Spring-animated switch |
 | `PrismalGlassSlider` | `…components` | Track + refracting thumb |
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
@@ -353,6 +353,8 @@ PrismalGlassSurface(
     shape = { PrismalRoundedRectangle(16.dp) },
     onClick = { /* optional */ },
     tint = Color(0xFF5856D6),
+    tintAlpha = 0.28f,
+    blurRadius = 8.dp,
     adaptiveLuminance = true,
     luminance = { luminanceState.luminance },
     modifier = Modifier.fillMaxWidth()
@@ -397,7 +399,8 @@ Effects are configured inside a `PrismalGlassEffectProvider` receiver block.
 
 | Function | Description |
 |----------|-------------|
-| `applyPrismalGlassEffects(...)` | Standard blur + vibrancy + lens chain |
+| `applyPrismalGlassEffects(...)` | Standard blur + vibrancy + lens chain. With adaptive on, `blurRadiusPx` is the base radius scaled by `adaptiveTuning`. |
+| `PrismalAdaptiveTuning` | Caps for adaptive brightness / contrast / blur scales (`Standard`, `Subtle`, or custom) |
 | `prismalBlur(radiusPx)` | Gaussian backdrop blur (API 31+; frost fallback on Legacy) |
 | `prismalLens(...)` | Edge refraction shader (API 33+, requires rounded shape). `chromaticAberration` is `[0, 1]` (`0.2` = 20% dispersion) |
 | `prismalGradientGlass(...)` | Vertical gradient blur panel (API 33+) |
@@ -431,19 +434,25 @@ Prefer `PrismalRoundedRectangle` over raw `RoundedCornerShape` when you need ref
 Sample backdrop brightness and tune glass + foreground automatically:
 
 ```kotlin
+import com.styropyr0.prismal.effects.PrismalAdaptiveTuning
 import com.styropyr0.prismal.effects.rememberPrismalAdaptiveLuminance
 
 val luminanceState = rememberPrismalAdaptiveLuminance(
     enabled = true,
     source = backdropLayer,
-    isLightTheme = !isSystemInDarkTheme()
+    isLightTheme = !isSystemInDarkTheme(),
+    // initialLuminance defaults to 0.5 — avoids a white flash before the first sample
 )
 
 PrismalGlassButton(
     onClick = { },
     backdrop = backdropLayer,
     adaptiveLuminance = true,
-    luminance = { luminanceState.luminance }
+    luminance = { luminanceState.luminance },
+    blurRadius = 8.dp,                          // base blur — still used when adaptive
+    adaptiveTuning = PrismalAdaptiveTuning.Subtle, // optional quieter preset
+    tint = Color(0xFF007AFF),
+    tintAlpha = 0.28f,                          // keep colored glass see-through
 ) {
     Text(
         "Adaptive",
@@ -452,7 +461,13 @@ PrismalGlassButton(
 }
 ```
 
-When `enabled = false`, luminance freezes at `0.5` (neutral).
+**Behavior notes**
+
+- Starts at luminance `0.5` until the first probe sample (not `1` in light theme).
+- Adaptive color controls keep a contrast floor (`0.75` Standard / `0.88` Subtle) so bright video does not wash glass to solid white.
+- When `adaptiveLuminance = true`, `blurRadiusPx` / `blurRadius` is the **base** radius scaled by [PrismalAdaptiveTuning] (`maxBlurScale` / `minBlurScale`) — it is not ignored.
+- Use `PrismalAdaptiveTuning.Subtle` for quieter UI chrome, or pass a custom `PrismalAdaptiveTuning(...)`.
+- When `enabled = false`, luminance freezes at the neutral midpoint (`0.5`).
 
 ---
 
@@ -631,7 +646,7 @@ PrismalRulerSelector(
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `value` | — | Currently selected integer value |
-| `onValueChange` | — | Called when scrolling settles on a new value |
+| `onValueChange` | — | Called as the focused tick changes while scrolling, and again when the snap settles |
 | `valueRange` | — | Inclusive range of selectable values |
 | `step` | `1` | Increment between consecutive values |
 | `majorTickEvery` | `5` | Draw a taller tick every N steps |

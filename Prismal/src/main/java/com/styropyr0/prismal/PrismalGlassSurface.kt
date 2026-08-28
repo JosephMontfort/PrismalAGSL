@@ -7,15 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
+import com.styropyr0.prismal.effects.PrismalAdaptiveTuning
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.interactive.PrismalPressRipple
 import kotlin.math.abs
@@ -35,10 +36,14 @@ import kotlin.math.tanh
  * @param shape Clip shape for the glass panel.
  * @param onClick When non-null, enables press animation and click handling.
  * @param adaptiveLuminance When true, effect tuning follows [luminance].
+ * @param blurRadius Backdrop blur radius; with adaptive luminance this is the base
+ *   radius scaled by [adaptiveTuning].
  * @param tint Optional color drawn on the glass surface (Hue blend + alpha overlay).
+ * @param tintAlpha Overlay alpha for [tint] (default keeps colored glass see-through).
  * @param surfaceColor Optional solid fill on the glass surface.
  * @param refractionHeightPx Edge lens zone height in pixels.
  * @param refractionAmountPx Edge lens displacement in pixels.
+ * @param adaptiveTuning Caps / scales when [adaptiveLuminance] is true.
  */
 @Composable
 fun PrismalGlassSurface(
@@ -48,7 +53,9 @@ fun PrismalGlassSurface(
     onClick: (() -> Unit)? = null,
     adaptiveLuminance: Boolean = false,
     luminance: () -> Float = { 0.5f },
+    blurRadius: Dp = 8.dp,
     tint: Color = Color.Unspecified,
+    tintAlpha: Float = PrismalDefaultTintAlpha,
     surfaceColor: Color = Color.Unspecified,
     brightness: Float = 0f,
     contrast: Float = 1f,
@@ -57,6 +64,7 @@ fun PrismalGlassSurface(
     refractionAmountPx: Float = 32f,
     depthEffect: Boolean = false,
     chromaticAberration: Float = 0f,
+    adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
     val density = LocalDensity.current
@@ -80,14 +88,15 @@ fun PrismalGlassSurface(
                         density = density,
                         adaptiveLuminance = adaptiveLuminance,
                         luminance = luminance(),
-                        blurRadiusPx = 2f,
+                        blurRadiusPx = with(density) { blurRadius.toPx() },
                         refractionHeightPx = refractionHeightPx,
                         refractionAmountPx = refractionAmountPx,
                         brightness = brightness,
                         saturation = saturation,
                         depthEffect = depthEffect,
                         chromaticAberration = chromaticAberration,
-                        useVibrancy = !adaptiveLuminance
+                        useVibrancy = !adaptiveLuminance,
+                        adaptiveTuning = adaptiveTuning,
                     )
                 },
                 layerBlock = if (interactivePrismalSpecular != null) {
@@ -118,10 +127,7 @@ fun PrismalGlassSurface(
                     null
                 },
                 onDrawSurface = {
-                    if (tint.isSpecified) {
-                        drawRect(tint, blendMode = BlendMode.Hue)
-                        drawRect(tint.copy(alpha = 0.75f))
-                    }
+                    drawPrismalGlassTint(tint, tintAlpha)
                     if (surfaceColor.isSpecified) {
                         drawRect(surfaceColor)
                     }

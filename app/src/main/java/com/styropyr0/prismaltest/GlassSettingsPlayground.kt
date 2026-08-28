@@ -106,6 +106,11 @@ fun GlassSettingsPlayground(
                     backdrop = backdrop
                 )
             }
+            if (params.adaptiveLuminance) {
+                IosSectionFooter(
+                    "Blur Radius is the adaptive base — bright scenes scale up, dark scenes scale down."
+                )
+            }
         }
 
         item {
@@ -131,6 +136,18 @@ fun GlassSettingsPlayground(
                     onCheckedChange = { params.adaptiveLuminance = it },
                     backdrop = backdrop
                 )
+                if (params.adaptiveLuminance) {
+                    IosGroupDivider()
+                    IosGlassDropdownRow(
+                        title = "Adaptive Style",
+                        options = AdaptiveStyleOption.entries.map { it.name },
+                        selectedIndex = AdaptiveStyleOption.entries.indexOf(params.adaptiveStyle),
+                        onSelected = { params.adaptiveStyle = AdaptiveStyleOption.entries[it] },
+                        screenBackdrop = screenBackdrop,
+                        params = params,
+                        luminance = luminance,
+                    )
+                }
                 if (!params.adaptiveLuminance) {
                     IosGroupDivider()
                     IosToggleRow(
@@ -175,9 +192,20 @@ fun GlassSettingsPlayground(
                     valueRange = 0f..0.6f,
                     backdrop = backdrop
                 )
+                IosGroupDivider()
+                IosSliderRow(
+                    title = "Color Tint Alpha",
+                    value = params.tintAlpha,
+                    valueLabel = "${(params.tintAlpha * 100).toInt()}%",
+                    onValueChange = { params.tintAlpha = it },
+                    valueRange = 0.05f..0.75f,
+                    backdrop = backdrop
+                )
             }
             if (params.adaptiveLuminance) {
-                IosSectionFooter("Turn off Adaptive Luminance to tune brightness manually.")
+                IosSectionFooter(
+                    "Subtle keeps contrast higher on bright backdrops. Blur Radius still applies as the adaptive base."
+                )
             } else if (params.useVibrancy) {
                 IosSectionFooter("Adjusting brightness switches to manual color controls.")
             }

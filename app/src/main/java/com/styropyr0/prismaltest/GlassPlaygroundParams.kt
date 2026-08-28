@@ -8,9 +8,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.styropyr0.prismal.PrismalDefaultTintAlpha
 import com.styropyr0.prismal.PrismalGlassEffectProvider
 import com.styropyr0.prismal.depth.PrismalDepthInset
 import com.styropyr0.prismal.depth.PrismalDepthShadow
+import com.styropyr0.prismal.effects.PrismalAdaptiveTuning
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 import com.styropyr0.prismal.specular.PrismalSpecular
 import com.styropyr0.prismal.specular.PrismalSpecularStyle
@@ -19,6 +21,16 @@ enum class SpecularStyleOption {
     Default,
     Ambient,
     Plain
+}
+
+enum class AdaptiveStyleOption {
+    Standard,
+    Subtle;
+
+    fun toTuning(): PrismalAdaptiveTuning = when (this) {
+        Standard -> PrismalAdaptiveTuning.Standard
+        Subtle -> PrismalAdaptiveTuning.Subtle
+    }
 }
 
 @Stable
@@ -32,6 +44,7 @@ class GlassPlaygroundParams {
     var cornerRadiusDp by mutableFloatStateOf(22f)
     var depthEffect by mutableStateOf(false)
     var adaptiveLuminance by mutableStateOf(false)
+    var adaptiveStyle by mutableStateOf(AdaptiveStyleOption.Standard)
     var useVibrancy by mutableStateOf(true)
     var specularEnabled by mutableStateOf(true)
     var specularAlpha by mutableFloatStateOf(1f)
@@ -44,6 +57,7 @@ class GlassPlaygroundParams {
     var depthInsetRadiusDp by mutableFloatStateOf(8f)
     var depthInsetAlpha by mutableFloatStateOf(0.5f)
     var surfaceTintAlpha by mutableFloatStateOf(0f)
+    var tintAlpha by mutableFloatStateOf(PrismalDefaultTintAlpha)
     var gradientBlurFadeEnd by mutableFloatStateOf(0.8f)
     var gradientBottomWeight by mutableFloatStateOf(1f)
 
@@ -57,6 +71,7 @@ class GlassPlaygroundParams {
         cornerRadiusDp = 22f
         depthEffect = false
         adaptiveLuminance = false
+        adaptiveStyle = AdaptiveStyleOption.Standard
         useVibrancy = true
         specularEnabled = true
         specularAlpha = 1f
@@ -69,6 +84,7 @@ class GlassPlaygroundParams {
         depthInsetRadiusDp = 8f
         depthInsetAlpha = 0.5f
         surfaceTintAlpha = 0f
+        tintAlpha = PrismalDefaultTintAlpha
         gradientBlurFadeEnd = 0.8f
         gradientBottomWeight = 1f
     }
@@ -116,7 +132,8 @@ class GlassPlaygroundParams {
             saturation = saturation,
             depthEffect = depthEffect,
             chromaticAberration = chromaticAberration,
-            useVibrancy = useVibrancy
+            useVibrancy = useVibrancy,
+            adaptiveTuning = adaptiveStyle.toTuning(),
         )
     }
 

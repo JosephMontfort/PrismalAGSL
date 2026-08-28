@@ -45,24 +45,34 @@ class PrismalAdaptiveLuminanceState internal constructor(
 /**
  * Monitors [source] backdrop layer brightness and exposes adaptive glass tuning values.
  *
- * Pass [enabled] = false to freeze at the neutral midpoint (0.5).
+ * Starts at a neutral [initialLuminance] (`0.5` by default) so glass does not wash out
+ * before the first probe sample. Pass [enabled] = false to freeze at that midpoint.
+ *
+ * [isLightTheme] only seeds [PrismalAdaptiveLuminanceState.contentColor] before the
+ * first sample; it no longer forces initial luminance to `1` / `0`.
  */
 @Composable
 fun rememberPrismalAdaptiveLuminance(
     enabled: Boolean,
     source: PrismalGlassLayer,
-    isLightTheme: Boolean
+    isLightTheme: Boolean,
+    initialLuminance: Float = 0.5f,
 ): PrismalAdaptiveLuminanceState {
-    val initial = if (isLightTheme) 1f else 0f
-    val state = remember { PrismalAdaptiveLuminanceState(initial) }
+    val initial = initialLuminance.coerceIn(0f, 1f)
+    val state = remember {
+        PrismalAdaptiveLuminanceState(initial).also {
+            // Theme-aware text color until the first probe sample lands.
+            it.contentColor = if (isLightTheme) Color.Black else Color.White
+        }
+    }
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val probeLayer = rememberGraphicsLayer()
 
     LaunchedEffect(enabled, source, density, layoutDirection) {
         if (!enabled) {
-            state.luminance = 0.5f
-            state.contentColor = Color.White
+            state.luminance = initial
+            state.contentColor = if (isLightTheme) Color.Black else Color.White
             return@LaunchedEffect
         }
 

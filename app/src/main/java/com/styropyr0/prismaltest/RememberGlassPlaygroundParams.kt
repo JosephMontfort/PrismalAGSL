@@ -33,6 +33,7 @@ private data class GlassPlaygroundSnapshot(
     val cornerRadiusDp: Float,
     val depthEffect: Boolean,
     val adaptiveLuminance: Boolean,
+    val adaptiveStyle: AdaptiveStyleOption,
     val useVibrancy: Boolean,
     val specularEnabled: Boolean,
     val specularAlpha: Float,
@@ -45,6 +46,7 @@ private data class GlassPlaygroundSnapshot(
     val depthInsetRadiusDp: Float,
     val depthInsetAlpha: Float,
     val surfaceTintAlpha: Float,
+    val tintAlpha: Float,
     val gradientBlurFadeEnd: Float,
     val gradientBottomWeight: Float,
 )
@@ -59,6 +61,7 @@ private fun GlassPlaygroundParams.toSnapshot() = GlassPlaygroundSnapshot(
     cornerRadiusDp = cornerRadiusDp,
     depthEffect = depthEffect,
     adaptiveLuminance = adaptiveLuminance,
+    adaptiveStyle = adaptiveStyle,
     useVibrancy = useVibrancy,
     specularEnabled = specularEnabled,
     specularAlpha = specularAlpha,
@@ -71,6 +74,7 @@ private fun GlassPlaygroundParams.toSnapshot() = GlassPlaygroundSnapshot(
     depthInsetRadiusDp = depthInsetRadiusDp,
     depthInsetAlpha = depthInsetAlpha,
     surfaceTintAlpha = surfaceTintAlpha,
+    tintAlpha = tintAlpha,
     gradientBlurFadeEnd = gradientBlurFadeEnd,
     gradientBottomWeight = gradientBottomWeight,
 )

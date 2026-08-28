@@ -2,6 +2,7 @@ package com.styropyr0.prismal
 
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.styropyr0.prismal.effects.PrismalAdaptiveTuning
 import com.styropyr0.prismal.effects.applyPrismalGlassEffects
 
 /**
@@ -18,11 +19,15 @@ object PrismalLiquidGlass {
      *
      * Refraction and AGSL-only effects are applied only when
      * [PrismalGlass.supportsRefraction] is true.
+     *
+     * When [adaptiveLuminance] is true, the `8.dp` blur is the **base** radius scaled by
+     * [adaptiveTuning] (see [applyPrismalGlassEffects]).
      */
     fun PrismalGlassEffectProvider.applyBase(
         density: Density,
         adaptiveLuminance: Boolean = false,
         luminance: Float = 0.5f,
+        adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
     ) {
         applyPrismalGlassEffects(
             density = density,
@@ -31,7 +36,8 @@ object PrismalLiquidGlass {
             blurRadiusPx = with(density) { 8.dp.toPx() },
             refractionHeightPx = with(density) { 16.dp.toPx() },
             refractionAmountPx = with(density) { 32.dp.toPx() },
-            useVibrancy = true
+            useVibrancy = true,
+            adaptiveTuning = adaptiveTuning,
         )
     }
 }
@@ -55,13 +61,15 @@ fun prismalGlassEffects(
     density: Density,
     adaptiveLuminance: Boolean = false,
     luminance: Float = 0.5f,
+    adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
     configure: PrismalGlassEffectProvider.() -> Unit = {},
 ): PrismalGlassEffectProvider.() -> Unit = {
     with(PrismalLiquidGlass) {
         applyBase(
             density = density,
             adaptiveLuminance = adaptiveLuminance,
-            luminance = luminance
+            luminance = luminance,
+            adaptiveTuning = adaptiveTuning,
         )
     }
     configure()

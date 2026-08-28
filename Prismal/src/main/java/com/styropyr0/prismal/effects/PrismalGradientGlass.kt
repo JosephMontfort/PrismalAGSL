@@ -14,6 +14,9 @@ import kotlin.math.sign
  *
  * [refractionTopWeight], [refractionMiddleWeight], and [refractionBottomWeight] control where
  * refraction peaks. When middle weight dominates, refraction fades in both directions from center.
+ *
+ * When [adaptiveLuminance] is true, [blurRadiusPx] is the **base** blur scaled by
+ * [adaptiveTuning] (same contract as [applyPrismalGlassEffects]).
  */
 fun PrismalGlassEffectProvider.prismalGradientGlass(
     density: Density,
@@ -29,14 +32,18 @@ fun PrismalGlassEffectProvider.prismalGradientGlass(
     blurFadeEnd: Float = 0.75f,
     tint: Color = Color.Transparent,
     tintIntensity: Float = 0f,
-    chromaticAberration: Float = 0f
+    chromaticAberration: Float = 0f,
+    adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
 ) {
     var effectiveBlur = blurRadiusPx
     if (adaptiveLuminance) {
         val l = (luminance * 2f - 1f).let { sign(it) * it * it }
-        val baseBlur = with(density) { 8.dp.toPx() }
-        val maxBlur = with(density) { 20.dp.toPx() }
-        val minBlur = with(density) { 2.dp.toPx() }
+        val tuning = adaptiveTuning
+        val baseBlur =
+            if (blurRadiusPx > 0f) blurRadiusPx
+            else with(density) { 8.dp.toPx() }
+        val maxBlur = baseBlur * tuning.maxBlurScale
+        val minBlur = (baseBlur * tuning.minBlurScale).coerceAtLeast(1f)
         effectiveBlur =
             if (l > 0f) lerp(baseBlur, maxBlur, l)
             else lerp(baseBlur, minBlur, -l)

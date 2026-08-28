@@ -14,9 +14,13 @@ import kotlin.math.sign
  * refraction into a single [PrismalGlassEffectProvider] block.
  *
  * @param density Current density for dp-to-px conversion.
- * @param adaptiveLuminance When true, blur and brightness are driven by [luminance].
+ * @param adaptiveLuminance When true, blur and brightness are driven by [luminance]
+ *   using [adaptiveTuning]. [blurRadiusPx] is still used as the **base** blur that
+ *   adaptive mode scales (it is not ignored).
  * @param luminance Normalized backdrop brightness in `[0, 1]` (used when adaptive).
- * @param blurRadiusPx Manual blur radius when adaptive mode is off.
+ * @param blurRadiusPx Manual blur radius when adaptive is off; when adaptive is on,
+ *   this is the base radius scaled by [PrismalAdaptiveTuning.maxBlurScale] /
+ *   [PrismalAdaptiveTuning.minBlurScale]. If `≤ 0` while adaptive, falls back to `8.dp`.
  * @param refractionHeightPx Lens zone height at the shape edge.
  * @param refractionAmountPx Lens displacement strength.
  * @param brightness Manual brightness offset when adaptive mode is off.
@@ -24,6 +28,8 @@ import kotlin.math.sign
  * @param depthEffect Passed through to [prismalLens].
  * @param chromaticAberration Passed through to [prismalLens].
  * @param useVibrancy When true and not adaptive, applies [vibrancy] instead of [colorControls].
+ * @param adaptiveTuning Caps / scales for adaptive remapping; use
+ *   [PrismalAdaptiveTuning.Subtle] for quieter UI chrome.
  */
 fun PrismalGlassEffectProvider.applyPrismalGlassEffects(
     density: Density,
@@ -36,22 +42,26 @@ fun PrismalGlassEffectProvider.applyPrismalGlassEffects(
     saturation: Float = 1.5f,
     depthEffect: Boolean = false,
     chromaticAberration: Float = 0f,
-    useVibrancy: Boolean = true
+    useVibrancy: Boolean = true,
+    adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
 ) {
     if (adaptiveLuminance) {
         val l = (luminance * 2f - 1f).let { sign(it) * it * it }
+        val tuning = adaptiveTuning
         colorControls(
             brightness =
-                if (l > 0f) lerp(0.1f, 0.5f, l)
-                else lerp(0.1f, -0.2f, -l),
+                if (l > 0f) lerp(tuning.midBrightness, tuning.maxBrightness, l)
+                else lerp(tuning.midBrightness, tuning.minBrightness, -l),
             contrast =
-                if (l > 0f) lerp(1f, 0f, l)
+                if (l > 0f) lerp(1f, tuning.minContrast, l)
                 else 1f,
             saturation = 1.5f
         )
-        val baseBlur = with(density) { 8.dp.toPx() }
-        val maxBlur = with(density) { 16.dp.toPx() }
-        val minBlur = with(density) { 2.dp.toPx() }
+        val baseBlur =
+            if (blurRadiusPx > 0f) blurRadiusPx
+            else with(density) { 8.dp.toPx() }
+        val maxBlur = baseBlur * tuning.maxBlurScale
+        val minBlur = (baseBlur * tuning.minBlurScale).coerceAtLeast(1f)
         prismalBlur(
             if (l > 0f) lerp(baseBlur, maxBlur, l)
             else lerp(baseBlur, minBlur, -l)

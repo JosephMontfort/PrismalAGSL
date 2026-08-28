@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -25,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -240,7 +240,6 @@ private fun PrismalHorizontalSelectorBody(
 ) {
     val dropletChromaticAberration = chromaticAberration.coerceIn(0f, 1f)
     val density = LocalDensity.current
-    val isLightTheme = !isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val labelsBackdrop = rememberPrismalGlassLayer()
@@ -342,16 +341,18 @@ private fun PrismalHorizontalSelectorBody(
         }
 
         val dropletWidth = with(density) { dropletWidthAnim.value.toDp() }
+        val dropletWidthPx = dropletWidthAnim.value
         val dropletVolumeScaleY =
             (targetDropletWidthPx / dropletWidthAnim.value).coerceIn(0.96f, 1.04f)
+        val viewportCenterX = viewportWidthPx / 2f
 
-        Box(Modifier.matchParentSize()) {
+        @Composable
+        fun SelectorItemsRow(
+            hideUnderDroplet: Boolean,
+            rowModifier: Modifier,
+        ) {
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .prismalGlassLayer(labelsBackdrop)
-                    .horizontalScroll(scrollState)
-                    .align(Alignment.Center),
+                rowModifier,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(Modifier.width(with(density) { startSpacerPx.toDp() }))
@@ -361,11 +362,17 @@ private fun PrismalHorizontalSelectorBody(
                         Spacer(Modifier.width(itemSpacing))
                     }
 
-                    val itemCenterOnScreen = itemCenterInContent(index) - scrollState.value.toFloat()
-                    val distanceFromCenter = abs(itemCenterOnScreen - viewportWidthPx / 2f) / (viewportWidthPx / 2f)
+                    val itemCenterOnScreen =
+                        itemCenterInContent(index) - scrollState.value.toFloat()
+                    val distanceFromCenter =
+                        abs(itemCenterOnScreen - viewportCenterX) / (viewportWidthPx / 2f)
                     val focus = (1f - distanceFromCenter.coerceIn(0f, 1f))
                     val scale = lerp(0.9f, 1f, focus)
-                    val alpha = lerp(0.38f, 1f, focus)
+                    val underDroplet =
+                        hideUnderDroplet &&
+                            abs(itemCenterOnScreen - viewportCenterX) < dropletWidthPx / 2f
+                    val alpha =
+                        if (underDroplet) 0f else lerp(0.38f, 1f, focus)
 
                     Box(
                         modifier = Modifier
@@ -383,6 +390,28 @@ private fun PrismalHorizontalSelectorBody(
 
                 Spacer(Modifier.width(with(density) { endSpacerPx.toDp() }))
             }
+        }
+
+        Box(Modifier.matchParentSize()) {
+            // Offscreen copy recorded for the droplet (same pattern as bottom tabs).
+            SelectorItemsRow(
+                hideUnderDroplet = false,
+                rowModifier = Modifier
+                    .alpha(0f)
+                    .fillMaxWidth()
+                    .prismalGlassLayer(labelsBackdrop)
+                    .horizontalScroll(scrollState, enabled = false)
+                    .align(Alignment.Center),
+            )
+
+            // Visible labels — hide the item under the droplet so it isn't doubled.
+            SelectorItemsRow(
+                hideUnderDroplet = true,
+                rowModifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState)
+                    .align(Alignment.Center),
+            )
 
             Box(
                 Modifier

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalBackdrop
 import com.styropyr0.prismal.drawPlainPrismalGlass
+import com.styropyr0.prismal.effects.PrismalAdaptiveTuning
 import com.styropyr0.prismal.effects.prismalGradientGlass
 
 /**
@@ -37,7 +38,8 @@ fun PrismalGradientGlassPanel(
     blurFadeStart: Float = 0f,
     blurFadeEnd: Float = 0.8f,
     chromaticAberration: Float = 0f,
-    tint: Color = Color.Unspecified
+    tint: Color = Color.Unspecified,
+    adaptiveTuning: PrismalAdaptiveTuning = PrismalAdaptiveTuning.Standard,
 ) {
     val density = LocalDensity.current
     val isLightTheme = !isSystemInDarkTheme()
@@ -70,7 +72,8 @@ fun PrismalGradientGlassPanel(
                         blurFadeEnd = blurFadeEnd,
                         tint = surfaceTint,
                         tintIntensity = if (surfaceTint.alpha > 0f) 0.6f else 0f,
-                        chromaticAberration = chromaticAberration
+                        chromaticAberration = chromaticAberration,
+                        adaptiveTuning = adaptiveTuning,
                     )
                 }
             )
