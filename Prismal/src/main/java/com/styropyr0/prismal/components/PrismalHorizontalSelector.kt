@@ -393,7 +393,6 @@ private fun PrismalHorizontalSelectorBody(
         }
 
         Box(Modifier.matchParentSize()) {
-            // Offscreen copy recorded for the droplet (same pattern as bottom tabs).
             SelectorItemsRow(
                 hideUnderDroplet = false,
                 rowModifier = Modifier
@@ -404,7 +403,6 @@ private fun PrismalHorizontalSelectorBody(
                     .align(Alignment.Center),
             )
 
-            // Visible labels — hide the item under the droplet so it isn't doubled.
             SelectorItemsRow(
                 hideUnderDroplet = true,
                 rowModifier = Modifier

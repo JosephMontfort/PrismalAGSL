@@ -63,10 +63,8 @@ private fun dropdownSquareBias(morph: Float): Float = (1f - morph).coerceIn(0f, 
 /** Opacity for the whole popup: invisible at the droplet, fully visible once expanded. */
 private fun dropdownPopupAlpha(morph: Float, closing: Boolean): Float =
     if (closing) {
-        // Fade out before the morph reaches droplet size — last 20% of close is invisible.
         ((morph - 0.2f) / 0.8f).coerceIn(0f, 1f)
     } else {
-        // Fade in during the first part of the open morph.
         (morph / 0.35f).coerceIn(0f, 1f)
     }
 

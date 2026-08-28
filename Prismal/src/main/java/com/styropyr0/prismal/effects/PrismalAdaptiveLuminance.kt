@@ -61,7 +61,6 @@ fun rememberPrismalAdaptiveLuminance(
     val initial = initialLuminance.coerceIn(0f, 1f)
     val state = remember {
         PrismalAdaptiveLuminanceState(initial).also {
-            // Theme-aware text color until the first probe sample lands.
             it.contentColor = if (isLightTheme) Color.Black else Color.White
         }
     }
