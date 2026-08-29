@@ -301,7 +301,7 @@ All components take a `backdrop: PrismalBackdrop` and degrade effects automatica
 | Component | Package | Description |
 |-----------|---------|-------------|
 | `PrismalGlassSurface` | `com.styropyr0.prismal` | General glass container; optional click + tint |
-| `PrismalGlassButton` | `…components` | Capsule button; configurable `blurRadius`, `height`, `tintAlpha` |
+| `PrismalGlassButton` | `…components` | Capsule button; fully tunable shape, effects, specular, depth, tint |
 | `PrismalGlassToggle` | `…components` | Spring-animated switch |
 | `PrismalGlassSlider` | `…components` | Track + refracting thumb |
 | `PrismalGlassProgressBar` | `…components` | Determinate or indeterminate track |
@@ -471,6 +471,56 @@ PrismalGlassButton(
 
 ---
 
+## Glass button
+
+`PrismalGlassButton` is a capsule glass button with a press ripple, drag-follow scale, and optional tint. Every glass layer is exposed, so it can be tuned all the way down without wrapping it in a custom component.
+
+```kotlin
+PrismalGlassButton(
+    onClick = { },
+    backdrop = backdropLayer,
+    luminance = { luminanceState.luminance },
+    shape = { PrismalRoundedRectangle(16.dp) },
+    refractionHeight = 16.dp,
+    refractionAmount = 32.dp,
+    chromaticAberration = 0.2f,
+    specular = { PrismalSpecular.Ambient },
+    depthShadow = null,                 // null disables the layer
+    depthInset = { PrismalDepthInset(radius = 8.dp) },
+    contentPadding = PaddingValues(horizontal = 20.dp),
+) {
+    Text("Tuned")
+}
+```
+
+### Key parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `onClick` / `backdrop` | — | Click handler and the source sampled through the glass |
+| `isInteractive` | `true` | Disables press ripple and scale feedback when false |
+| `shape` | `PrismalCapsule()` | Glass outline |
+| `height` | `48.dp` | Fixed row height, or `null` to let the modifier / content size it |
+| `blurRadius` | `8.dp` | Backdrop blur; base radius when `adaptiveLuminance = true` |
+| `refractionHeight` / `refractionAmount` | `12.dp` / `24.dp` | Thickness of the refracting edge band and how far it bends |
+| `brightness` / `saturation` | `0f` / `1.5f` | Color controls applied to the sampled backdrop |
+| `chromaticAberration` | `0f` | RGB dispersion in `[0, 1]` (API 33+) |
+| `depthEffect` / `useVibrancy` | `false` / `true` | Extra depth pass and vibrancy on the glass |
+| `adaptiveLuminance` / `luminance` / `adaptiveTuning` | `false` / `{ 0.5f }` / `Standard` | Adaptive brightness wiring |
+| `effects` | `null` | Replaces the whole built-in effect stack; receives the current luminance |
+| `specular` | `PrismalSpecular.Default` | Specular highlight; `null` disables it |
+| `depthShadow` | `PrismalDepthShadow.Default` | Outer depth shadow; `null` disables it |
+| `depthInset` | `null` | Inner depth inset |
+| `nestedGlassSource` | `null` | Layer this button contributes to for nested glass |
+| `tint` / `tintAlpha` | `Unspecified` / `PrismalDefaultTintAlpha` | Color overlay on the glass surface |
+| `surfaceColor` | `Unspecified` | Solid fill drawn on the surface |
+| `onDrawSurface` | `null` | Extra surface drawing, applied after tint and `surfaceColor` |
+| `pressLift` | `4.dp` | Scale-up amount while pressed |
+| `contentPadding` | `16.dp` horizontal | Padding around the content |
+| `horizontalArrangement` / `verticalAlignment` | centered | Row layout of the content |
+
+---
+
 ## Interactive primitives
 
 Lower-level building blocks used by components:
@@ -597,6 +647,7 @@ PrismalHorizontalSelector(
 | `itemSpacing` | `6.dp` | Gap between items |
 | `itemPadding` | `14.dp` | Horizontal padding included in each item width |
 | `dropletExtraWidth` | `10.dp` | Extra width added around the focused item for the capsule |
+| `dropletShadow` | `false` | Depth shadow under the droplet; off by default since the selector clips it into a visible box |
 
 ### Behavior
 
@@ -661,6 +712,7 @@ PrismalRulerSelector(
 | `dropletEffects` | `null` | Custom effect block; replaces the default lens stack when set |
 | `dropletExtraWidth` | `50.dp` | Extra horizontal padding around the widest label |
 | `dropletPadding` | `5.dp` | Outer padding around the droplet capsule |
+| `dropletShadow` | `false` | Depth shadow under the droplet; off by default since the ruler clips it into a visible box |
 
 ### Behavior
 
