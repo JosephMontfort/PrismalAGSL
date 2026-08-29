@@ -102,6 +102,7 @@ fun PrismalHorizontalSelector(
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     boldWhenFocused: Boolean = true,
     chromaticAberration: Float = 0.3f,
+    dropletShadow: Boolean = false,
 ) {
     if (labels.isEmpty()) return
 
@@ -134,6 +135,7 @@ fun PrismalHorizontalSelector(
         dropletEffects = dropletEffects,
         onDrawDropletSurface = onDrawDropletSurface,
         chromaticAberration = chromaticAberration,
+        dropletShadow = dropletShadow,
     ) { index, focus ->
         val fontWeight = if (boldWhenFocused && focus > 0.88f) FontWeight.Bold else FontWeight.Medium
         BasicText(
@@ -168,6 +170,7 @@ fun PrismalHorizontalSelector(
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.2f,
+    dropletShadow: Boolean = false,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     if (itemCount <= 0) return
@@ -210,6 +213,7 @@ fun PrismalHorizontalSelector(
                 dropletEffects = dropletEffects,
                 onDrawDropletSurface = onDrawDropletSurface,
                 chromaticAberration = chromaticAberration,
+                dropletShadow = dropletShadow,
                 itemContent = itemContent,
             )
         }.first().measure(constraints)
@@ -236,6 +240,7 @@ private fun PrismalHorizontalSelectorBody(
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.2f,
+    dropletShadow: Boolean = false,
     itemContent: @Composable (index: Int, focus: Float) -> Unit,
 ) {
     val dropletChromaticAberration = chromaticAberration.coerceIn(0f, 1f)
@@ -444,7 +449,7 @@ private fun PrismalHorizontalSelectorBody(
                             }
                         },
                         specular = specular,
-                        depthShadow = { PrismalDepthShadow() },
+                        depthShadow = if (dropletShadow) ({ PrismalDepthShadow() }) else null,
                         depthInset = {
                             PrismalDepthInset(
                                 radius = 8.dp,

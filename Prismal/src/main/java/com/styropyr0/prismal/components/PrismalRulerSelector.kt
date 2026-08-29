@@ -102,6 +102,7 @@ fun PrismalRulerSelector(
     dropletEffects: (PrismalGlassEffectProvider.(luminance: Float) -> Unit)? = null,
     onDrawDropletSurface: (DrawScope.(luminance: Float) -> Unit)? = null,
     chromaticAberration: Float = 0.3f,
+    dropletShadow: Boolean = false,
 ) {
     require(step > 0) { "step must be > 0" }
     require(!valueRange.isEmpty()) { "valueRange must not be empty" }
@@ -333,7 +334,7 @@ fun PrismalRulerSelector(
                             }
                         },
                         specular = specular,
-                        depthShadow = { PrismalDepthShadow() },
+                        depthShadow = if (dropletShadow) ({ PrismalDepthShadow() }) else null,
                         depthInset = {
                             PrismalDepthInset(
                                 radius = 8.dp,
