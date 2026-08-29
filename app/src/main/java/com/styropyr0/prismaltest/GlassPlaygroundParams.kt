@@ -1,11 +1,14 @@
 package com.styropyr0.prismaltest
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.styropyr0.prismal.PrismalDefaultTintAlpha
@@ -148,4 +151,13 @@ class GlassPlaygroundParams {
 
     fun surfaceTintColor(): Color =
         Color.White.copy(alpha = surfaceTintAlpha)
+
+    @Composable
+    fun buttonEffects(): PrismalGlassEffectProvider.(Float) -> Unit {
+        val density = LocalDensity.current
+        return { currentLuminance -> glassEffects(density, currentLuminance)() }
+    }
+
+    fun surfaceTintDrawer(): (DrawScope.() -> Unit)? =
+        if (surfaceTintAlpha > 0f) ({ drawRect(surfaceTintColor()) }) else null
 }

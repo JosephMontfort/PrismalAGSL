@@ -8,20 +8,15 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -74,62 +69,6 @@ fun modalGlassEffects(density: Density): PrismalGlassEffectProvider.() -> Unit =
         refractionHeightPx = with(density) { 16.dp.toPx() },
         refractionAmountPx = with(density) { 32.dp.toPx() },
         useVibrancy = true,
-    )
-}
-
-@Composable
-fun PlaygroundGlassButton(
-    onClick: () -> Unit,
-    backdrop: PrismalBackdrop,
-    params: GlassPlaygroundParams,
-    luminance: () -> Float,
-    modifier: Modifier = Modifier,
-    isInteractive: Boolean = true,
-    tint: Color = Color.Unspecified,
-    tintAlpha: Float = params.tintAlpha,
-    surfaceColor: Color = Color.Unspecified,
-    content: @Composable RowScope.() -> Unit
-) {
-    val density = LocalDensity.current
-    val pressLiftPx = with(density) { 4.dp.toPx() }
-    val animationScope = rememberCoroutineScope()
-    val interactivePrismalSpecular = remember(animationScope, isInteractive) {
-        if (isInteractive) PrismalPressRipple(animationScope = animationScope) else null
-    }
-
-    Row(
-        modifier
-            .playgroundGlassModifier(
-                backdrop = backdrop,
-                params = params,
-                luminance = luminance,
-                shape = { PrismalCapsule() },
-                pressRipple = interactivePrismalSpecular,
-                pressLiftPx = pressLiftPx,
-                tint = tint,
-                tintAlpha = tintAlpha,
-                surfaceColor = surfaceColor
-            )
-            .clickable(
-                interactionSource = null,
-                indication = null,
-                role = Role.Button,
-                onClick = onClick
-            )
-            .then(
-                if (interactivePrismalSpecular != null) {
-                    Modifier
-                        .then(interactivePrismalSpecular.modifier)
-                        .then(interactivePrismalSpecular.gestureModifier)
-                } else {
-                    Modifier
-                }
-            )
-            .height(48.dp)
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-        content = content
     )
 }
 

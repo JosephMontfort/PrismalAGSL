@@ -48,6 +48,7 @@ import coil.request.ImageRequest
 import com.styropyr0.prismal.components.LocalPrismalBottomTabHighlightedIndex
 import com.styropyr0.prismal.components.PrismalGlassBottomTab
 import com.styropyr0.prismal.components.PrismalGlassBottomTabs
+import com.styropyr0.prismal.components.PrismalGlassButton
 import com.styropyr0.prismal.components.PrismalGlassSlider
 import com.styropyr0.prismal.components.PrismalHorizontalSelector
 import com.styropyr0.prismal.components.PrismalRulerSelector
@@ -383,22 +384,36 @@ private fun CatalogTabContent(
                         .padding(IosLayout.groupInnerPadding),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    PlaygroundGlassButton(
+                    PrismalGlassButton(
                         onClick = {},
                         backdrop = backdrop,
-                        params = glassParams,
                         luminance = luminance,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        tintAlpha = glassParams.tintAlpha,
+                        adaptiveLuminance = glassParams.adaptiveLuminance,
+                        adaptiveTuning = glassParams.adaptiveStyle.toTuning(),
+                        effects = glassParams.buttonEffects(),
+                        specular = glassParams.specularProvider(),
+                        depthShadow = glassParams.depthShadowProvider(),
+                        depthInset = glassParams.depthInsetProvider(),
+                        onDrawSurface = glassParams.surfaceTintDrawer(),
                     ) {
                         Text("Default", style = IosTheme.body, color = IosTheme.colors.label)
                     }
-                    PlaygroundGlassButton(
+                    PrismalGlassButton(
                         onClick = {},
                         backdrop = backdrop,
-                        params = glassParams,
                         luminance = luminance,
                         modifier = Modifier.weight(1f),
-                        tint = Color(0xFFFEF082)
+                        tint = Color(0xFFFEF082),
+                        tintAlpha = glassParams.tintAlpha,
+                        adaptiveLuminance = glassParams.adaptiveLuminance,
+                        adaptiveTuning = glassParams.adaptiveStyle.toTuning(),
+                        effects = glassParams.buttonEffects(),
+                        specular = glassParams.specularProvider(),
+                        depthShadow = glassParams.depthShadowProvider(),
+                        depthInset = glassParams.depthInsetProvider(),
+                        onDrawSurface = glassParams.surfaceTintDrawer(),
                     ) {
                         Text("Tinted", style = IosTheme.body, color = IosTheme.colors.label)
                     }
