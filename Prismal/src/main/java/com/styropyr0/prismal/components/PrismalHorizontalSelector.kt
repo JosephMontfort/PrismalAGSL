@@ -347,8 +347,7 @@ private fun PrismalHorizontalSelectorBody(
 
         val dropletWidth = with(density) { dropletWidthAnim.value.toDp() }
         val dropletWidthPx = dropletWidthAnim.value
-        val dropletVolumeScaleY =
-            (targetDropletWidthPx / dropletWidthAnim.value).coerceIn(0.96f, 1.04f)
+        val dropletVolumeScaleY = (targetDropletWidthPx / dropletWidthAnim.value).coerceIn(0.96f, 1.04f)
         val viewportCenterX = viewportWidthPx / 2f
 
         @Composable
@@ -363,21 +362,14 @@ private fun PrismalHorizontalSelectorBody(
                 Spacer(Modifier.width(with(density) { startSpacerPx.toDp() }))
 
                 repeat(itemCount) { index ->
-                    if (index > 0) {
-                        Spacer(Modifier.width(itemSpacing))
-                    }
+                    if (index > 0) Spacer(Modifier.width(itemSpacing))
 
-                    val itemCenterOnScreen =
-                        itemCenterInContent(index) - scrollState.value.toFloat()
-                    val distanceFromCenter =
-                        abs(itemCenterOnScreen - viewportCenterX) / (viewportWidthPx / 2f)
+                    val itemCenterOnScreen = itemCenterInContent(index) - scrollState.value.toFloat()
+                    val distanceFromCenter = abs(itemCenterOnScreen - viewportCenterX) / (viewportWidthPx / 2f)
                     val focus = (1f - distanceFromCenter.coerceIn(0f, 1f))
                     val scale = lerp(0.9f, 1f, focus)
-                    val underDroplet =
-                        hideUnderDroplet &&
-                            abs(itemCenterOnScreen - viewportCenterX) < dropletWidthPx / 2f
-                    val alpha =
-                        if (underDroplet) 0f else lerp(0.38f, 1f, focus)
+                    val underDroplet = hideUnderDroplet && abs(itemCenterOnScreen - viewportCenterX) < dropletWidthPx / 2f
+                    val alpha = if (underDroplet) 0f else lerp(0.38f, 1f, focus)
 
                     Box(
                         modifier = Modifier
@@ -409,7 +401,7 @@ private fun PrismalHorizontalSelectorBody(
             )
 
             SelectorItemsRow(
-                hideUnderDroplet = true,
+                hideUnderDroplet = false,
                 rowModifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(scrollState)
